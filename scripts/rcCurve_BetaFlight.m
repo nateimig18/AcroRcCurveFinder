@@ -11,7 +11,7 @@ clear all, close all, clc
 v = @(x, rc_expo)		x .* (rc_expo .* abs(x).^3 + (1 - rc_expo));		% note the abs() around the x^3
 % v = @(x, rc_expo)		rc_expo .* x.^3  + (1 - rc_expo) .* x;			% More like KISS curve w/ out abs()
 
-rc_Rate = @(x)	 x .* (x <= 2.0) + (x+29.16)/15.58 .* (x > 2.0);
+rc_Rate = @(x)	 x .* (x <= 2.0) + (x+29.16)/15.54 .* (x > 2.0);
 
 Nx = 2000;		% 
 Nc = 5;			% Number of curves  to produce
