@@ -8,15 +8,22 @@
 % end-points center-stick slope.
 clear all, close all, clc
 
-v = @(x, rc_expo)		x .* (rc_expo .* abs(x).^3 + (1 - rc_expo));		% note the abs() around the x^3
-% v = @(x, rc_expo)		rc_expo .* x.^3  + (1 - rc_expo) .* x;			% More like KISS curve w/ out abs()
+% BetaFlight RC Rates to center-stick slope & max rotational rate
+rc_RateFwdBF  = @(rc_Rate)					   (rc_Rate + (rc_Rate - 2) .* (rc_Rate > 2.0));
+wMax_BF		  = @(  BF_RATE, BF_RCRATE)		round((200./(1 - BF_RATE)) .* rc_RateFwdBF(BF_RCRATE));
+wSlope_BF	  = @(BF_RCEXPO, BF_RCRATE)	round(200 * rc_RateFwdBF(BF_RCRATE) .* (1 - BF_RCEXPO));
 
-rc_Rate = @(x)	 x .* (x <= 2.0) + (x+29.16)/15.54 .* (x > 2.0);
+% KISS RC Rates to center-stick slope & max rotational rate.
+wMax_KISS	  = @(   KISS_RATE, KISS_RCRATE)		(200 * KISS_RCRATE)./(1 - KISS_RATE);
+wSlope_KISS	  = @(KISS_RCCURVE, KISS_RCRATE)	(200 * KISS_RCRATE * (1 - KISS_RCCURVE)); 
+
+rc_RateBackBF = @(x)	(x .* (x <= 2.0) + (x + 29.16)/15.54 .* (x > 2.0));
+v = @(x, rc_expo)		(x .* (rc_expo .* abs(x).^3 + (1 - rc_expo)));		% note the abs() around the x^3
 
 Nx = 2000;		% 
 Nc = 5;			% Number of curves  to produce
 
-w_slope = 200;		% (deg/sec)/(full traversal) ???
+w_slope = 150;		% (deg/sec)/(full traversal) ???
 w_max = 900;		% (deg/sec)
 
 % x = linspace(-1, 1, Nx);		% <-- Look at full input range 
@@ -35,7 +42,7 @@ RR(1:Nc, 1) = R(:);		RR = repmat(RR, 1, Nx);
 RCR(1:Nc, 1) = rcR(:);	RCR = repmat(RCR, 1, Nx);
 RCE(1:Nc, 1) = rcE(:);	RCE = repmat(RCE, 1, Nx);
 
-rcR = rc_Rate(rcR);
+rcR = rc_RateBackBF(rcR);
 
 w = 200 * RCR .* (v(XX, RCE)./(1 - RR .* abs(v(XX, RCE))));
 wDiff = diff(w');
@@ -44,7 +51,7 @@ Gs = max(wDiff) ./ min(wDiff);
 
 
 % plot(x, v(XX, RCE));
-for i = 1:Nc, lgd{i} = sprintf('RC Rate:%3.2f; Rate:%3.2f; RC Expo:%3.2f, G_S=%3.2f', rcR(i), R(i), rcE(i), Gs(i));  end 
+for i = 1:Nc, lgd{i} = sprintf('RC Rate:%5.4f; Rate:%5.4f; RC Expo:%5.4f, G_S=%4.3f', rcR(i), R(i), rcE(i), Gs(i));  end 
 
 figure(1);
 subplot(1,2,1);
