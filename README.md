@@ -1,6 +1,9 @@
 # AcroRcCurveFinder
 
-This is a quick MATLAB script (*.m), I wrote to help me responsibly feel out a good RC curve in both the KISS Flight Controller & BetaFlight FC that has equal sensitivity at "center-stick" & the same end points at "full-stick". It generates a number of RC curves that meet the center slope & end-point criteria you define while varying the degree of width for the curve's center-stick linearity region. The two output plots both have a legend with the RC Rate, Rate, & Curve (for KISS) or RC Rate, Rate, & RC Expo (for Betaflight) shenanigan parameters for each curve that the KISS configurator then uses. Below is a test output:
+This is a quick MATLAB script (*.m), I wrote to help me responsibly feel out a good RC curve in both the KISS Flight Controller & BetaFlight FC that has equal sensitivity at "center-stick" & the same end points at "max-stick". It generates a number of RC curves that meet the center slope & end-point criteria you define while varying the degree of width for the curve's center-stick linearity region. The two output plots both have a legend with the RC Rate, Rate, & Curve (for KISS) or RC Rate, Rate, & RC Expo (for Betaflight) shenanigan parameters for each curve that the KISS configurator then uses. Below is a test output:
+
+# How to Use
+In the script folder there are three matlab (*.m) scripts, two of which are only for either BetaFlight ("rcCurve_BetaFlight.m") or KISS ("rcCuve_KISS.m"). The third included custom script ("rcCurve_Custom.m") is based on a curve I developed in the pdf document ("rcCurve_Redefine.pdf", caution there be dragons) that I think FULLY expands the range of possible curves meeting this "center-stick" sensitivity & "max-stick" end points criteria, but varying the width of center-stick linearity. If your curious please take a look, hopefully with some attention who knows, might be implemented in BetaFlight.
 
 # Test output plots:
 ![rc_output_s150_e900_kiss](https://cloud.githubusercontent.com/assets/3208983/23920119/68812a6a-08c7-11e7-8380-17765a2cec84.jpg)
