@@ -4,14 +4,23 @@
 % start at lower end points and work up from there.
 clear all, close all, clc
 
-% KISS FC ripped from "http://ultraesc.de/KISSFC/rates.html" under inspect "head-script"
+% BetaFlight RC Rates to center-stick slope & max rotational rate
+rc_RateFwdBF  = @(rc_Rate)					   (rc_Rate + (rc_Rate - 2) .* (rc_Rate > 2.0));
+wMax_BF		  = @(  BF_RATE, BF_RCRATE)		round((200./(1 - BF_RATE)) .* rc_RateFwdBF(BF_RCRATE));
+wSlope_BF	  = @(BF_RCEXPO, BF_RCRATE)		round(200 * rc_RateFwdBF(BF_RCRATE) .* (1 - BF_RCEXPO));
+
+% KISS RC Rates to center-stick slope & max rotational rate.
+wMax_KISS	  = @(   KISS_RATE, KISS_RCRATE)		round((200 * KISS_RCRATE)./(1 - KISS_RATE));
+wSlope_KISS	  = @(KISS_RCCURVE, KISS_RCRATE)		round( 200 * KISS_RCRATE .*(1 - KISS_RCCURVE)); 
+
+% KISS FC derived "http://ultraesc.de/KISSFC/rates.html" under inspect "head-script"
 poly_rc = @(x, r, pr) (pr .* x.^3 + (1 - pr) .* x).*(r/10);
 expo_rc = @(x, ar) 1./(1 - abs(x).*ar);
 f = @(x, r, ar, pr) round(2000 * expo_rc(x, ar) .* poly_rc(x, r, pr)*100)/100;
 
 Nc = 5;                    % Number of curves
 w_max = 900;               % (deg/sec) Define end points "full-stick" maximum rotational vel.
-w_slope = 200;					% (deg/sec/inc) Define "center-stick" sensitivity.
+w_slope = 150;					% (deg/sec/inc) Define "center-stick" sensitivity.
 
 
 Nx = 2000;						% Number of steps RC remote and reciever put give to FC... Taranis = 2000???
@@ -51,12 +60,10 @@ title(sprintf('KISS RC Curve''s w/ Center-Sensitivity = %4.1f $\\left( \\frac{de
 plot(xx, w_slope*xx, 'r', 'LineWidth', 2);
 plot([min(xx); max(xx); 0], [min(y(:, 1)); max(y(:, 1)); 0], 'ro')
 
-for i = 1:Nc,  lgd{i} = sprintf('RC Rate:%3.2f; Rate:%3.2f; Curve:%3.2f, G_S=%3.2f', rr(i), ar(i), pr(i), Gs(i));  end
+for i = 1:Nc,  lgd{i} = sprintf('RC Rate:%5.4f; Rate:%5.4f; Curve:%5.4f, G_S=%5.4f', rr(i), ar(i), pr(i), Gs(i));  end
 legend(lgd, 'Location', 'NorthWest');
 
 subplot(1,2,2);
 plot(XX(1:end-1,:), yDiff(:,:)); hold;
 title(sprintf('KISS RC Sensitivity Curve''s w/ Center-Sensitivity = %4.1f $\\left( \\frac{deg}{sec \\cdot \\Delta} \\right)$, End Pts. = %d $\\left( \\frac{deg}{sec} \\right)$', w_slope, w_max),'interpreter','latex');
-
-for i = 1:Nc, lgd{i} = sprintf('RC Rate:%3.2f; Rate:%3.2f; Curve:%3.2f, G_S=%3.2f', rr(i), ar(i), pr(i), Gs(i));  end 
 legend(lgd, 'Location', 'North');
