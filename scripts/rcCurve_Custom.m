@@ -1,28 +1,54 @@
 clear all, close all, clc;
 
 Nx = 1000; 
-Ng = 10;
+Nc = 10;
 
-x = linspace(0, 1, Nx);
-g = logspace(log10(2), log10(8), Ng);		% <--- Varies the linear center width logrithmically.... 
+x = linspace(-1, 1, Nx);	dx = x(2) - x(1);
+g = logspace(log10(2), log10(10), Nc);		% <--- Varies the linear center width logrithmically.... 
 
-XX(   1, 1:Nx) = x(:);	XX = repmat(XX, Ng, 1);
-GG(1:Ng,    1) = g(:);	GG = repmat(GG, 1, Nx);
+XX(   1, 1:Nx) = x(:);	XX = repmat(XX, Nc, 1);
+GG(1:Nc,    1) = g(:);	GG = repmat(GG, 1, Nx);
 
-p = g+3;
-P = GG + 3;
+% Experimenting with gamma & rho dependence...
+off = 2;			% <-- Currently Experimenting making a simple linear relationship between rho & gamma
+p = g + off;			
+P = GG + off;
 
-a = 0.9;												% <--- Defines your center stick sensitivity (i.e. slope)
-YY = (XX .^ GG + a*(exp(XX./P) - 1)./(exp(1./P)-1) ) / (1 + a);
+m0 = 0.35;
+Ap = p .* (exp(1./p) - 1);
+q = m0.*Ap./(1 - m0 .* Ap);		% <--- Defines your center stick sensitivity (i.e. slope)
+
+QQ(1:Nc, 1) = q(:);  QQ = repmat(QQ, 1, Nx); 
+
+YY = sign(XX) .* (abs(XX) .^ GG + QQ .* (exp(abs(XX)./P) - 1)./(exp(1./P)-1) ) ./ (1 + QQ);
 
 lgd = {};
-for i = 1:Ng, lgd{i} = sprintf('s_c=%4.3f \\gamma=%4.3f, \\rho=%4.3f', a, g(i), p(i));  end 
+for i = 1:Nc, lgd{i} = sprintf('\\gamma=%4.3f, \\rho=%4.3f \\phi=%4.3f', g(i), p(i), q(i));  end 
 
 % YY = XX .^ GG;
 
 figure(1);
 plot(x, YY); hold;
+plot(x, m0*x, 'r','LineWidth', 1.25);
 legend(lgd, 'Location', 'NorthWest');
+title(sprintf('Custom Normalized RC Curve''s w/ Center-Stick Sensitivity = %4.3f $\\left( \\frac{deg}{sec \\cdot \\Delta} \\right)$', m0),'interpreter','latex');
+axis([-1 1 -1 1]);
 
-axis([0 1 0 1])
 % plot(x, exp(XX./(1-XX./GG).^P));
+figure(2);
+dYY = diff(YY')'/dx;
+plot(x(1:end-1), dYY);
+legend(lgd, 'Location', 'NorthWest');
+title(sprintf('Custom Normalized RC Curve''s Slope w/ Center-Stick Sensitivity = %4.1f $\\left( \\frac{deg}{sec \\cdot \\Delta} \\right)$', m0),'interpreter','latex');
+
+%% 
+
+clear all, close all, clc
+
+p = 0.25;
+m0 = 0.4;
+g = linspace(1.5, 10, 1000);
+
+w = exp(log(m0*p./g)./(g - 1));
+
+plot(g, w);
