@@ -40,15 +40,3 @@ dYY = diff(YY')'/dx;
 plot(x(1:end-1), dYY);
 legend(lgd, 'Location', 'NorthWest');
 title(sprintf('Custom Normalized RC Curve''s Slope w/ Center-Stick Sensitivity = %4.1f $\\left( \\frac{deg}{sec \\cdot \\Delta} \\right)$', m0),'interpreter','latex');
-
-%% 
-
-clear all, close all, clc
-
-p = 0.25;
-m0 = 0.4;
-g = linspace(1.5, 10, 1000);
-
-w = exp(log(m0*p./g)./(g - 1));
-
-plot(g, w);
