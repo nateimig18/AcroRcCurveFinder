@@ -3,28 +3,25 @@ clear all, close all, clc;
 Nx = 1000; 
 Nc = 10;
 
-m0 = 0.2;				% <----- Center Stick Slope (percentage w.r.t max stick slope)
-x = linspace(0, 1, Nx);	dx = x(2) - x(1);
-g = logspace(log10(2), log10(10), Nc);		% <--- Varies the linear center width logrithmically.... 
+x = linspace(-1, 1, Nx);	dx = x(2) - x(1);	% <---- Normalized stick inputs
+
+m0 = 0.5;		% <----- Center Stick Slope (percentage w.r.t max stick slope)
+wmn = 0.05;		% <----- Set the desired linear width percentage minimium
+wmx = 0.75;		% <----- Set the desired linear width percentage maximum 
+tol = 0.1;		% <----- Define the tolerance linear slope tolerance
+
+w = linspace(wmn, wmx, Nc);												% <--- Calculate linearly spaced linear widths
+% w = logspace(log10(wmn), log10(wmx), Nc);								% <--- Calculate logrithmically spaced linear widths
+g = lambertw(-1, m0 * tol/(1 - m0) * w .* log(w)) ./ log(w);	% <--- Calculate appropriate gamma params
 
 XX(   1, 1:Nx) = x(:);	XX = repmat(XX, Nc, 1);
 GG(1:Nc,    1) = g(:);	GG = repmat(GG, 1, Nx);
-
-% ------ Over-complicated things here ------
-% Experimenting with gamma & rho dependence...
-% off = 1;			% <-- Currently Experimenting making a simple linear relationship between rho & gamma
-% p = g + off;			
-% P = GG + off;
-% Ap = p .* (exp(1./p) - 1);
-% q = m0.*Ap./(1 - m0 .* Ap);		% <--- Defines your center stick sensitivity (i.e. slope)
-% QQ(1:Nc, 1) = q(:);  QQ = repmat(QQ, 1, Nx); 
-% YY = sign(XX) .* (abs(XX) .^ GG + QQ .* (exp(abs(XX)./P) - 1)./(exp(1./P)-1) ) ./ (1 + QQ);
 
 % ------ Keep It Super Simple -------
 YY = sign(XX) .* ((1 - m0).*abs(XX).^GG + m0.*abs(XX));
 
 lgd = {};
-for i = 1:Nc, lgd{i} = sprintf('\\gamma=%4.3f, \\rho=%4.3f \\phi=%4.3f', g(i), p(i), q(i));  end 
+for i = 1:Nc, lgd{i} = sprintf('\\gamma=%4.3f, w=%4.3f', g(i), w(i));  end 
 
 % YY = XX .^ GG;
 
@@ -41,3 +38,9 @@ dYY = diff(YY')'/dx;
 plot(x(1:end-1), dYY);
 legend(lgd, 'Location', 'NorthWest');
 title(sprintf('Custom Normalized RC Curve''s Slope w/ Center-Stick Sensitivity = %4.3f $\\left( \\frac{deg}{sec \\cdot \\Delta} \\right)$', m0),'interpreter','latex');
+
+W = ones(1, Nc);
+for n = 1: Nc,	i = find(dYY(n, round(end/2):end) > (1+tol)*m0);	W(n) = x(i(1) + round(end/2));  end
+
+err = W - w;
+display(err)
